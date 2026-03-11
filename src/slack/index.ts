@@ -40,7 +40,7 @@ slackApp.event("app_mention", async ({ event, say }) => {
 });
 
 // /status — show all agents' current status
-slackApp.command("/status", async ({ command, ack, respond }) => {
+slackApp.command("/agent-status", async ({ command, ack, respond }) => {
   await ack();
 
   const keys = await redis.keys("agent:*");

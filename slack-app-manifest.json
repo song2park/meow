@@ -11,7 +11,7 @@
     },
     "slash_commands": [
       {
-        "command": "/status",
+        "command": "/agent-status",
         "description": "Show all agents current status (idle/busy)",
         "should_escape": false
       }
