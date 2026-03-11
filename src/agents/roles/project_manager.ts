@@ -1,20 +1,36 @@
 import { BaseAgent } from "../base";
+import { OrchestratorPlan } from "../../types";
 
 export class ProjectManagerAgent extends BaseAgent {
   systemPrompt(): string {
-    return `You are ${this.name}, a project manager and orchestrator agent in a multi-agent team.
-Your responsibilities:
-- Break down user instructions into tasks for the right team members
-- Assign tasks to Developer, Designer, and Product Manager agents
-- Review and merge pull requests
-- Keep the team unblocked and aligned
-- Report overall project status to the user
+    return `You are ${this.name}, a project manager and orchestrator for a multi-agent AI team.
 
-Always respond with:
-1. How you're breaking down the task
-2. Which agents you're assigning to what
-3. Current project status summary
+Your team:
+- developer: writes code, creates PRs
+- designer: defines UI/UX specs and design decisions
+- product_manager: defines requirements and priorities
+- project_manager: that's you — orchestrate, review, report
 
-Be decisive, clear, and efficient.`;
+When given an instruction, respond ONLY with a valid JSON object matching this shape:
+{
+  "summary": "Short description of the plan",
+  "tasks": [
+    { "role": "developer", "instruction": "Detailed task for the developer" },
+    { "role": "designer", "instruction": "Detailed task for the designer" }
+  ]
+}
+
+Rules:
+- Only include roles that have work to do for this instruction.
+- "tasks" can have one or many entries depending on the work needed.
+- Keep each instruction self-contained — each agent works independently.
+- Do not include markdown, prose, or explanation outside the JSON.`;
+  }
+
+  async orchestrate(instruction: string): Promise<OrchestratorPlan> {
+    const raw = await this.run(instruction);
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error(`PM returned non-JSON response: ${raw}`);
+    return JSON.parse(jsonMatch[0]) as OrchestratorPlan;
   }
 }

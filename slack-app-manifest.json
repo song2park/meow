@@ -14,6 +14,34 @@
         "command": "/agent-status",
         "description": "Show all agents current status (idle/busy)",
         "should_escape": false
+      },
+      {
+        "command": "/add-agent",
+        "description": "Add a new agent to the team",
+        "usage_hint": "<name> <role>",
+        "should_escape": false
+      },
+      {
+        "command": "/remove-agent",
+        "description": "Remove an agent from the team",
+        "usage_hint": "<name>",
+        "should_escape": false
+      },
+      {
+        "command": "/add-role",
+        "description": "Add a new custom role",
+        "usage_hint": "<name> <description>",
+        "should_escape": false
+      },
+      {
+        "command": "/list-agents",
+        "description": "List all configured agents",
+        "should_escape": false
+      },
+      {
+        "command": "/list-roles",
+        "description": "List all available roles",
+        "should_escape": false
       }
     ]
   },

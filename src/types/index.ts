@@ -1,4 +1,6 @@
-export type AgentRole = "developer" | "designer" | "product_manager" | "project_manager";
+// Built-in roles — extended dynamically via /add-role
+export type BuiltinRole = "developer" | "designer" | "product_manager" | "project_manager";
+export type AgentRole = BuiltinRole | string;
 
 export type AgentStatus = "idle" | "busy";
 
@@ -28,4 +30,14 @@ export interface JobPayload {
   context?: string;
   slackChannel: string;
   slackThreadTs?: string;
+}
+
+export interface OrchestratorTask {
+  role: AgentRole;
+  instruction: string;
+}
+
+export interface OrchestratorPlan {
+  summary: string;
+  tasks: OrchestratorTask[];
 }

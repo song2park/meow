@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm:*)",
+      "WebSearch",
+      "WebFetch(domain:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git -C d:/workspace/node/multi-agent-orch log --oneline -6)"
+    ]
+  }
+}

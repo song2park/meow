@@ -4,6 +4,7 @@ import { DeveloperAgent } from "./roles/developer";
 import { DesignerAgent } from "./roles/designer";
 import { ProductManagerAgent } from "./roles/product_manager";
 import { ProjectManagerAgent } from "./roles/project_manager";
+import { GenericAgent } from "./roles/generic";
 
 export function createAgent(agent: Agent): BaseAgent {
   switch (agent.role) {
@@ -16,7 +17,8 @@ export function createAgent(agent: Agent): BaseAgent {
     case "project_manager":
       return new ProjectManagerAgent(agent);
     default:
-      throw new Error(`Unknown role: ${agent.role satisfies never}`);
+      // Custom user-defined role — use BaseAgent with a generic prompt
+      return new GenericAgent(agent);
   }
 }
 
