@@ -5,7 +5,20 @@
       "WebSearch",
       "WebFetch(domain:*)",
       "Bash(npx tsc:*)",
-      "Bash(git -C d:/workspace/node/multi-agent-orch log --oneline -6)"
+      "Bash(git -C d:/workspace/node/multi-agent-orch log --oneline -6)",
+      "Bash(docker compose:*)",
+      "Bash(docker-compose --version)",
+      "Bash(where docker:*)",
+      "Bash(podman --version)",
+      "Bash(podman compose:*)",
+      "Bash(podman-compose --version)",
+      "Read(//c/Users/SONG/.claude/projects/d--workspace-node-multi-agent-orch/**)",
+      "Bash(node -e \"const IORedis = require\\(''''ioredis''''\\); const r = new IORedis\\(\\); console.log\\(typeof r.set\\); r.quit\\(\\);\")",
+      "Bash(node -e \"const IORedis = require\\(''ioredis''\\); console.log\\(IORedis.version || require\\(''./node_modules/ioredis/package.json''\\).version\\)\")",
+      "Bash(node:*)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\SONG\\.claude\\projects\\d--workspace-node-multi-agent-orch"
     ]
   }
 }

@@ -1,5 +1,5 @@
 import { Job } from "bullmq";
-import { createWorker, agentQueue } from "./index";
+import { createWorker, agentQueue, redis } from "./index";
 import { JobPayload, Agent, AgentRole } from "../types";
 import { createAgent } from "../agents";
 import { ProjectManagerAgent } from "../agents/roles/project_manager";
@@ -26,17 +26,24 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
   const agentData = result.rows[0];
 
   const agent = createAgent({ ...agentData, status: "busy" });
-
-  await agent.setStatus("busy", instruction);
-  await db.query("UPDATE agent_tasks SET status = 'in_progress' WHERE id = $1", [taskId]);
-
-  await postToSlack(
-    slackChannel,
-    `:hourglass_flowing_sand: *${agent.name}* (${agent.role}) is working on: _${instruction}_`,
-    slackThreadTs
-  );
+  const lockKey = `agent:lock:${agentId}`;
 
   try {
+    // Acquire per-agent Redis lock to prevent concurrent jobs for the same agent
+    const lockAcquired = await redis.set(lockKey, "1", "EX", 300, "NX");
+    if (lockAcquired === null) {
+      throw new Error("Agent is busy, will retry");
+    }
+
+    await agent.setStatus("busy", instruction);
+    await db.query("UPDATE agent_tasks SET status = 'in_progress' WHERE id = $1", [taskId]);
+
+    await postToSlack(
+      slackChannel,
+      `:hourglass_flowing_sand: *${agent.name}* (${agent.role}) is working on: _${instruction}_`,
+      slackThreadTs
+    );
+
     // Project manager orchestrates — dispatch sub-tasks to the team
     if (agent.role === "project_manager") {
       const pm = agent as ProjectManagerAgent;
@@ -76,6 +83,7 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
       }
 
       await agent.setStatus("idle");
+      await redis.del(lockKey);
       await db.query("UPDATE agent_tasks SET status = 'completed', completed_at = NOW() WHERE id = $1", [taskId]);
       return;
     }
@@ -90,9 +98,11 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
     );
 
     await agent.setStatus("idle");
+    await redis.del(lockKey);
     await db.query("UPDATE agent_tasks SET status = 'completed', completed_at = NOW() WHERE id = $1", [taskId]);
   } catch (err) {
     await agent.setStatus("idle");
+    await redis.del(lockKey);
     await db.query("UPDATE agent_tasks SET status = 'failed' WHERE id = $1", [taskId]);
     await postToSlack(
       slackChannel,

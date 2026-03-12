@@ -30,5 +30,6 @@ INSERT INTO roles (name, description) VALUES
   ('developer', 'Writes and reviews code, creates PRs'),
   ('designer', 'Creates UI/UX designs and design decisions'),
   ('product_manager', 'Defines requirements and priorities'),
-  ('project_manager', 'Orchestrates team, reviews and merges PRs')
+  ('project_manager', 'Orchestrates team, reviews and merges PRs'),
+  ('qa_engineer', 'Tests features, reports bugs, validates agent output')
 ON CONFLICT (name) DO NOTHING;

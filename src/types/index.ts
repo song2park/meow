@@ -1,5 +1,5 @@
 // Built-in roles — extended dynamically via /add-role
-export type BuiltinRole = "developer" | "designer" | "product_manager" | "project_manager";
+export type BuiltinRole = "developer" | "designer" | "product_manager" | "project_manager" | "qa_engineer";
 export type AgentRole = BuiltinRole | string;
 
 export type AgentStatus = "idle" | "busy";

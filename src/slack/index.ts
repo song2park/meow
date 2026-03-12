@@ -49,42 +49,52 @@ slackApp.event("app_mention", async ({ event, say }) => {
 
   // Natural language status queries — respond immediately without queuing
   if (STATUS_PATTERNS.some((p) => p.test(instruction))) {
-    const report = await buildStatusReport();
-    await say({ text: report, thread_ts: event.ts });
+    try {
+      const report = await buildStatusReport();
+      await say({ text: report, thread_ts: event.ts });
+    } catch (err) {
+      console.error("[app_mention] Error building status report:", err);
+      await say({ text: ":x: Could not fetch agent status. Please try again.", thread_ts: event.ts });
+    }
     return;
   }
 
-  // Route to project manager (orchestrator) via DB lookup
-  const pmResult = await db.query("SELECT id FROM agents WHERE role = 'project_manager' LIMIT 1");
-  if (pmResult.rows.length === 0) {
+  try {
+    // Route to project manager (orchestrator) via DB lookup
+    const pmResult = await db.query("SELECT id FROM agents WHERE role = 'project_manager' LIMIT 1");
+    if (pmResult.rows.length === 0) {
+      await say({
+        text: ":warning: No project manager configured yet. Add one with `/add-agent <name> project_manager`.",
+        thread_ts: event.ts,
+      });
+      return;
+    }
+
+    const pmAgentId = pmResult.rows[0].id as string;
+    const taskId = uuid();
+    const payload: JobPayload = {
+      taskId,
+      agentId: pmAgentId,
+      instruction,
+      slackChannel: event.channel,
+      slackThreadTs: event.ts,
+    };
+
+    await db.query(
+      `INSERT INTO agent_tasks (id, agent_id, instruction, status, slack_channel, slack_thread_ts)
+       VALUES ($1, $2, $3, 'pending', $4, $5)`,
+      [taskId, pmAgentId, instruction, event.channel, event.ts]
+    );
+
+    await agentQueue.add("agent-task", payload);
     await say({
-      text: ":warning: No project manager configured yet. Run `npm run seed` to set up the team.",
+      text: `:hourglass_flowing_sand: Got it! The team is on it. _(task: \`${taskId}\`)_`,
       thread_ts: event.ts,
     });
-    return;
+  } catch (err) {
+    console.error("[app_mention] Error handling mention:", err);
+    await say({ text: ":x: Something went wrong. Please try again.", thread_ts: event.ts });
   }
-
-  const pmAgentId = pmResult.rows[0].id as string;
-  const taskId = uuid();
-  const payload: JobPayload = {
-    taskId,
-    agentId: pmAgentId,
-    instruction,
-    slackChannel: event.channel,
-    slackThreadTs: event.ts,
-  };
-
-  await db.query(
-    `INSERT INTO agent_tasks (id, agent_id, instruction, status, slack_channel, slack_thread_ts)
-     VALUES ($1, $2, $3, 'pending', $4, $5)`,
-    [taskId, pmAgentId, instruction, event.channel, event.ts]
-  );
-
-  await agentQueue.add("agent-task", payload);
-  await say({
-    text: `:hourglass_flowing_sand: Got it! The team is on it. _(task: \`${taskId}\`)_`,
-    thread_ts: event.ts,
-  });
 });
 
 // /agent-status — show all agents' current status
