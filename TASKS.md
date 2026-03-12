@@ -16,9 +16,12 @@
 
 ## Milestone 1: Core Agent System (v1 MVP)
 ### Slack Integration
-- [ ] Set up Slack app (bot token, event subscriptions, slash commands)
+- [x] Set up Slack app (bot token, event subscriptions, slash commands)
 - [x] Implement Slack bolt server (receive messages/mentions)
 - [x] Implement Slack message posting (agents publish updates)
+- [x] PM orchestration — structured JSON plan dispatched to team by role
+- [x] Error handling — try/catch on all handlers, user-facing error messages
+- [x] Per-agent Redis lock to prevent race conditions
 
 ### Task Queue
 - [x] Integrate BullMQ with Redis
@@ -30,25 +33,29 @@
 - [x] Implement agent status tracking in Redis
 - [x] Implement Claude API integration for agent reasoning
 - [x] Agent posts Slack message on task start/complete/decision
+- [x] Zod schema validation on PM JSON response
 
 ### Agent Roles (v1: one agent per role)
-- [x] Developer agent
-- [x] Designer agent
-- [x] Product Manager agent
-- [x] Project Manager (orchestrator) agent
+- [x] Developer agent (Tara)
+- [x] Designer agent (Mary)
+- [x] Product Manager agent (Charles)
+- [x] Project Manager / orchestrator agent (Alex)
+- [x] QA Engineer agent (Clare)
 
 ### Git Integration
 - [ ] Each agent commits to its own branch (agent/<name>)
 - [ ] Orchestrator creates PR when agent pushes changes
 
 ### User-facing Slack Commands
-- [ ] `@bot <instruction>` — assign task to appropriate agent
-- [ ] `/status` — show all agents status (idle/busy + current task)
-- [ ] `@bot show me what you're doing` — agents describe current task
+- [x] `@bot <instruction>` — routes to PM, PM orchestrates team
+- [x] `/agent-status` — show all agents status (idle/busy + current task)
+- [x] `@bot what are you doing` — inline status, no queue needed
+- [x] `/add-agent`, `/remove-agent`, `/add-role`, `/list-agents`, `/list-roles`
 
 ## Milestone 2: Agent Management
-- [ ] Add/edit/remove agents via Slack command or config
-- [ ] Add/edit custom roles (name + description)
+- [x] Add/remove agents via Slack commands
+- [x] Add custom roles via Slack commands
+- [ ] Edit agent name/role
 - [ ] Assign multiple agents to same role
 
 ## Milestone 3: Live Dashboard (post-v1)

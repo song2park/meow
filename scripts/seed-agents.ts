@@ -17,6 +17,7 @@ const DEFAULT_ROLES = [
 ] as const;
 
 const DEFAULT_AGENTS = [
+  { name: "Alex",    role: "project_manager",  branch: "agent/alex" },
   { name: "Mary",    role: "designer",         branch: "agent/mary" },
   { name: "Charles", role: "product_manager",  branch: "agent/charles" },
   { name: "Tara",    role: "developer",        branch: "agent/tara" },
