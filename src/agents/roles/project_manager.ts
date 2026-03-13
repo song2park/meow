@@ -60,7 +60,9 @@ Rules:
   }
 
   async orchestrate(instruction: string): Promise<OrchestratorPlan> {
-    const output = await this.run(instruction);
-    return ProjectManagerAgent.parse(output.summary);
+    // Use think() directly — we need the raw response, not the AgentOutput wrapper,
+    // because parseOutput() strips the tasks array when it finds a ```json``` block.
+    const rawText = await this.think(this.systemPrompt(), instruction);
+    return ProjectManagerAgent.parse(rawText);
   }
 }
