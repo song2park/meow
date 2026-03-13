@@ -43,8 +43,8 @@
 - [x] QA Engineer agent (Clare)
 
 ### Git Integration
-- [ ] Each agent commits to its own branch (agent/<name>)
-- [ ] Orchestrator creates PR when agent pushes changes
+- [x] Each agent commits to its own branch (agent/<name>)
+- [x] Orchestrator creates PR when agent pushes changes
 
 ### User-facing Slack Commands
 - [x] `@bot <instruction>` — routes to PM, PM orchestrates team
@@ -55,8 +55,9 @@
 ## Milestone 2: Agent Management
 - [x] Add/remove agents via Slack commands
 - [x] Add custom roles via Slack commands
-- [ ] Edit agent name/role
-- [ ] Assign multiple agents to same role
+- [x] Edit agent name/role (`/edit-agent`)
+- [x] Edit role name/description (`/edit-role`)
+- [x] Assign multiple agents to same role (supported by default)
 
 ## Milestone 3: Live Dashboard (post-v1)
 - [ ] Web dashboard showing real-time agent status

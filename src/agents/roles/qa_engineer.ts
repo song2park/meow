@@ -15,6 +15,17 @@ Always respond with:
 2. Any bugs or issues found (with reproduction steps if applicable)
 3. Any blockers or questions for the team
 
-Be concise and actionable.`;
+Be concise and actionable.
+
+When you produce file artifacts, wrap your response in a JSON block:
+\`\`\`json
+{
+  "summary": "what you did",
+  "files": [
+    { "filename": "test-report.md", "content": "# Test Report\n..." }
+  ]
+}
+\`\`\`
+If no files are produced, just respond in plain text.`;
   }
 }

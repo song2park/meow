@@ -6,6 +6,8 @@ import { ProjectManagerAgent } from "../agents/roles/project_manager";
 import { postToSlack } from "../slack";
 import { db } from "../db";
 import { v4 as uuid } from "uuid";
+import { config } from "../config";
+import { ensureAgentBranch, writeAgentFile, commitAndPush, createAgentPR } from "../git";
 
 async function getAgentByRole(role: AgentRole): Promise<(Agent & { id: string }) | null> {
   const result = await db.query<Agent & { id: string }>(
@@ -89,13 +91,64 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
     }
 
     // All other agents — run task and post result to Slack
-    const response = await agent.run(instruction, context);
+    const output = await agent.run(instruction, context);
 
     await postToSlack(
       slackChannel,
-      `:white_check_mark: *${agent.name}* finished:\n${response}`,
+      `:white_check_mark: *${agent.name}* finished:\n${output.summary}`,
       slackThreadTs
     );
+
+    // Handle file artifacts: commit to agent branch and open a PR
+    if (output.files && output.files.length > 0) {
+      const branchName = `agent/${agent.name}`;
+      const writtenFiles: string[] = [];
+
+      try {
+        const git = await ensureAgentBranch(branchName);
+
+        for (const file of output.files) {
+          const relativePath = await writeAgentFile(agent.name, file.filename, file.content);
+          writtenFiles.push(relativePath);
+        }
+
+        const shortDescription = instruction.slice(0, 72);
+        const commitMessage = `[${agent.name}] ${shortDescription}`;
+        await commitAndPush(git, agent.name, agent.role, commitMessage);
+
+        // Attempt PR creation if GITHUB_TOKEN is configured
+        let prUrl: string | null = null;
+        if (config.GITHUB_TOKEN) {
+          try {
+            prUrl = await createAgentPR({
+              agentName: agent.name,
+              agentRole: agent.role,
+              taskDescription: shortDescription,
+              filesChanged: writtenFiles,
+            });
+          } catch (prErr) {
+            console.error(`[worker] PR creation failed for ${agent.name}:`, (prErr as Error).message);
+          }
+        } else {
+          console.warn(`[worker] GITHUB_TOKEN not set — skipping PR creation for ${agent.name}`);
+        }
+
+        const prNote = prUrl ? ` — PR: ${prUrl}` : "";
+        await postToSlack(
+          slackChannel,
+          `:file_folder: *${agent.name}* committed ${writtenFiles.length} file(s)${prNote}`,
+          slackThreadTs
+        );
+      } catch (gitErr) {
+        // Git errors are non-fatal for the task itself — log and continue
+        console.error(`[worker] Git integration error for ${agent.name}:`, (gitErr as Error).message);
+        await postToSlack(
+          slackChannel,
+          `:warning: *${agent.name}* produced files but git commit failed: ${(gitErr as Error).message}`,
+          slackThreadTs
+        );
+      }
+    }
 
     await agent.setStatus("idle");
     await redis.del(lockKey);

@@ -60,7 +60,7 @@ Rules:
   }
 
   async orchestrate(instruction: string): Promise<OrchestratorPlan> {
-    const raw = await this.run(instruction);
-    return ProjectManagerAgent.parse(raw);
+    const output = await this.run(instruction);
+    return ProjectManagerAgent.parse(output.summary);
   }
 }

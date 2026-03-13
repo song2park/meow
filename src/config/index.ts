@@ -17,6 +17,9 @@ const envSchema = z.object({
   POSTGRES_PASSWORD: z.string().default("postgres"),
   PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  GITHUB_TOKEN: z.string().optional(),
+  REPO_OWNER: z.string().default("song2park"),
+  REPO_NAME: z.string().default("meow"),
 });
 
 export const config = envSchema.parse(process.env);

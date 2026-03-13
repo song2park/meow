@@ -42,6 +42,18 @@
         "command": "/list-roles",
         "description": "List all available roles",
         "should_escape": false
+      },
+      {
+        "command": "/edit-agent",
+        "description": "Edit an existing agent's name or role",
+        "usage_hint": "<name> [name:<new-name>] [role:<role-name>]",
+        "should_escape": false
+      },
+      {
+        "command": "/edit-role",
+        "description": "Edit an existing role's name or description",
+        "usage_hint": "<name> [name:<new-name>] [description:<new-description>]",
+        "should_escape": false
       }
     ]
   },

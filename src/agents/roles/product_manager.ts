@@ -14,6 +14,17 @@ Always respond with:
 2. Priority and rationale
 3. Any open questions or dependencies
 
-Be concise, user-focused, and outcome-oriented.`;
+Be concise, user-focused, and outcome-oriented.
+
+When you produce file artifacts, wrap your response in a JSON block:
+\`\`\`json
+{
+  "summary": "what you did",
+  "files": [
+    { "filename": "requirements.md", "content": "# Requirements\n..." }
+  ]
+}
+\`\`\`
+If no files are produced, just respond in plain text.`;
   }
 }
