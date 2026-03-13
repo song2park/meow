@@ -8,6 +8,7 @@ import { db } from "../db";
 import { v4 as uuid } from "uuid";
 import { config } from "../config";
 import { ensureAgentBranch, writeAgentFile, commitAndPush, createAgentPR } from "../git";
+import { emitAgentUpdate, ROLE_COLORS } from "../dashboard";
 
 async function getAgentByRole(role: AgentRole): Promise<(Agent & { id: string }) | null> {
   const result = await db.query<Agent & { id: string }>(
@@ -38,6 +39,14 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
     }
 
     await agent.setStatus("busy", instruction);
+    emitAgentUpdate({
+      agentId: agent.name.toLowerCase().replace(/\s+/g, "-"),
+      agentName: agent.name,
+      status: "busy",
+      currentTask: instruction,
+      message: `Started: ${instruction}`,
+      color: ROLE_COLORS[agent.role] ?? "#6b7280",
+    });
     await db.query("UPDATE agent_tasks SET status = 'in_progress' WHERE id = $1", [taskId]);
 
     await postToSlack(
@@ -85,6 +94,14 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
       }
 
       await agent.setStatus("idle");
+      emitAgentUpdate({
+        agentId: agent.name.toLowerCase().replace(/\s+/g, "-"),
+        agentName: agent.name,
+        status: "idle",
+        currentTask: "",
+        message: `Orchestration complete: ${plan.summary}`,
+        color: ROLE_COLORS[agent.role] ?? "#6b7280",
+      });
       await redis.del(lockKey);
       await db.query("UPDATE agent_tasks SET status = 'completed', completed_at = NOW() WHERE id = $1", [taskId]);
       return;
@@ -151,10 +168,26 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
     }
 
     await agent.setStatus("idle");
+    emitAgentUpdate({
+      agentId: agent.name.toLowerCase().replace(/\s+/g, "-"),
+      agentName: agent.name,
+      status: "idle",
+      currentTask: "",
+      message: `Completed: ${instruction}`,
+      color: ROLE_COLORS[agent.role] ?? "#6b7280",
+    });
     await redis.del(lockKey);
     await db.query("UPDATE agent_tasks SET status = 'completed', completed_at = NOW() WHERE id = $1", [taskId]);
   } catch (err) {
     await agent.setStatus("idle");
+    emitAgentUpdate({
+      agentId: agent.name.toLowerCase().replace(/\s+/g, "-"),
+      agentName: agent.name,
+      status: "idle",
+      currentTask: "",
+      message: `Error: ${(err as Error).message}`,
+      color: ROLE_COLORS[agent.role] ?? "#6b7280",
+    });
     await redis.del(lockKey);
     await db.query("UPDATE agent_tasks SET status = 'failed' WHERE id = $1", [taskId]);
     await postToSlack(

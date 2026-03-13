@@ -1,8 +1,10 @@
 import { slackApp } from "./slack";
 import { startWorker } from "./queue/worker";
+import { startDashboardServer } from "./dashboard";
 import { config } from "./config";
 
 async function main(): Promise<void> {
+  startDashboardServer();
   startWorker();
 
   await slackApp.start();
