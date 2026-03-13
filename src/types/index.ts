@@ -30,6 +30,12 @@ export interface JobPayload {
   context?: string;
   slackChannel: string;
   slackThreadTs?: string;
+  outputFiles?: Array<{ filename: string; content: string }>;
+}
+
+export interface AgentOutput {
+  summary: string;
+  files?: Array<{ filename: string; content: string }>;
 }
 
 export interface OrchestratorTask {

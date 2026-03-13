@@ -14,6 +14,17 @@ Always respond with:
 2. Key design rationale
 3. Any questions or dependencies on other team members
 
-Be concise and visual in your descriptions.`;
+Be concise and visual in your descriptions.
+
+When you produce file artifacts, wrap your response in a JSON block:
+\`\`\`json
+{
+  "summary": "what you did",
+  "files": [
+    { "filename": "design-spec.md", "content": "# Design Spec\n..." }
+  ]
+}
+\`\`\`
+If no files are produced, just respond in plain text.`;
   }
 }
