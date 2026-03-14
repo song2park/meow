@@ -32,19 +32,28 @@ export async function initWorkspace(): Promise<void> {
       console.log("[workspace] Local repo initialised.");
     }
   } else {
+    // Directory exists — ensure it's a git repo
+    const isGitRepo = fs.existsSync(`${workspaceRepoPath}/.git`);
+    if (!isGitRepo) {
+      console.log(`[workspace] Directory exists but is not a git repo — initialising at ${workspaceRepoPath}`);
+      const git = simpleGit(workspaceRepoPath);
+      await git.init();
+      await git.addConfig("user.name", "multi-agent-orch", false, "local");
+      await git.addConfig("user.email", "bot@multi-agent-orch", false, "local");
+      await git.commit("chore: initial empty commit", [], { "--allow-empty": null });
+    }
+
     if (config.GIT_REPO_URL) {
-      console.log(`[workspace] Workspace exists. Ensuring remote origin → ${config.GIT_REPO_URL}`);
+      console.log(`[workspace] Ensuring remote origin → ${config.GIT_REPO_URL}`);
       const git = simpleGit(workspaceRepoPath);
       try {
         await git.remote(["set-url", "origin", config.GIT_REPO_URL]);
-        console.log("[workspace] Remote origin updated.");
       } catch {
-        // Remote may not exist yet — add it
         await git.addRemote("origin", config.GIT_REPO_URL);
-        console.log("[workspace] Remote origin added.");
       }
+      console.log("[workspace] Remote origin configured.");
     } else {
-      console.log(`[workspace] Workspace exists at ${workspaceRepoPath} (local-only mode).`);
+      console.log(`[workspace] Workspace ready at ${workspaceRepoPath} (local-only mode).`);
     }
   }
 }
