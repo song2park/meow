@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, Router } from "express";
 import * as path from "path";
 import { redis } from "../queue";
 import { db } from "../db";
@@ -31,7 +31,7 @@ export interface HealthPayload {
   todayCount: number;
 }
 
-// ── Legacy event emitter (used by worker to push updates) ─────────────────────
+// ── AgentUpdateEvent (used by worker) ─────────────────────────────────────────
 
 export interface AgentUpdateEvent {
   agentId: string;
@@ -55,7 +55,7 @@ export const ROLE_COLORS: Record<string, string> = {
 const sseClients = new Set<Response>();
 const MAX_SSE_CLIENTS = 50;
 
-/** Broadcast a raw agent-update event to all connected SSE clients (legacy push path). */
+/** Broadcast an agent-update event to all connected SSE clients. */
 export function emitAgentUpdate(event: AgentUpdateEvent): void {
   const payload = `data: ${JSON.stringify(event)}\n\n`;
   for (const client of sseClients) {
@@ -118,7 +118,8 @@ async function getAllAgents(): Promise<AgentStatus[]> {
   return agents;
 }
 
-async function getRecentTasks(): Promise<TaskRow[]> {
+async function getRecentTasks(limit = 20): Promise<TaskRow[]> {
+  const safeLimit = Math.min(Math.max(1, limit), 50);
   const result = await db.query<{
     id: string;
     agent_name: string;
@@ -132,7 +133,8 @@ async function getRecentTasks(): Promise<TaskRow[]> {
      FROM agent_tasks t
      JOIN agents a ON a.id = t.agent_id
      ORDER BY t.created_at DESC
-     LIMIT 20`
+     LIMIT $1`,
+    [safeLimit]
   );
   return result.rows.map((r) => ({
     id: r.id,
@@ -167,12 +169,21 @@ async function getTodayCount(): Promise<number> {
   return parseInt(result.rows[0]?.count ?? "0", 10);
 }
 
-// ── Public path resolution ─────────────────────────────────────────────────────
-// When compiled: dist/dashboard/index.js → public is ../../public
-// When run via ts-node from cwd: use process.cwd()/public
+// ── Path resolution ────────────────────────────────────────────────────────────
+// In dev (ts-node): __filename = .../src/dashboard/index.ts → resolve relative to __dirname
+// In prod (compiled): __filename = .../dist/dashboard/index.js → go up to src via process.cwd()
+
+function resolveDashboardHtml(): string {
+  const isDist = __filename.endsWith(".js") && __filename.includes("dist");
+  if (isDist) {
+    // dist/dashboard/index.js → ../../src/dashboard/index.html
+    return path.join(__dirname, "../../src/dashboard/index.html");
+  }
+  // src/dashboard/index.ts → same dir
+  return path.join(__dirname, "index.html");
+}
 
 function resolvePublicDir(): string {
-  // ts-node sets __filename to the .ts path; compiled sets it to .js inside dist/
   const isDist = __filename.endsWith(".js") && __filename.includes("dist");
   if (isDist) {
     return path.join(__dirname, "../../public");
@@ -180,87 +191,78 @@ function resolvePublicDir(): string {
   return path.join(process.cwd(), "public");
 }
 
-// ── Express app ────────────────────────────────────────────────────────────────
+// ── SSE helper ────────────────────────────────────────────────────────────────
 
-export function startDashboardServer(): void {
-  const app = express();
-  const publicDir = resolvePublicDir();
+function attachSSEClient(req: Request, res: Response): void {
+  if (sseClients.size >= MAX_SSE_CLIENTS) {
+    res.status(503).send("Too many SSE clients");
+    return;
+  }
 
-  // Serve static assets (style.css, dashboard.js, etc.)
-  app.use(express.static(publicDir));
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.flushHeaders();
 
-  // GET / → index.html
-  app.get("/", (_req: Request, res: Response) => {
-    res.sendFile(path.join(publicDir, "index.html"));
-  });
+  res.write("retry: 3000\n\n");
+  sseClients.add(res);
 
-  // GET /api/events → SSE
-  app.get("/api/events", (req: Request, res: Response) => {
-    if (sseClients.size >= MAX_SSE_CLIENTS) {
-      res.status(503).send("Too many SSE clients");
+  const sendSnapshot = async (): Promise<void> => {
+    try {
+      const [agents, tasks, queueDepth, todayCount] = await Promise.all([
+        getAllAgents(),
+        getRecentTasks(20),
+        getQueueDepth(),
+        getTodayCount(),
+      ]);
+      const agentsOnline = agents.filter(
+        (a) => a.status === "idle" || a.status === "busy"
+      ).length;
+      const health: HealthPayload = { agentsOnline, queueDepth, todayCount };
+      if (!res.writableEnded) {
+        res.write(`event: agents\ndata: ${JSON.stringify(agents)}\n\n`);
+        res.write(`event: tasks\ndata: ${JSON.stringify(tasks)}\n\n`);
+        res.write(`event: health\ndata: ${JSON.stringify(health)}\n\n`);
+      }
+    } catch (err) {
+      console.error("[dashboard] SSE send error:", err);
+    }
+  };
+
+  void sendSnapshot();
+  const interval = setInterval(async () => {
+    if (res.writableEnded) {
+      clearInterval(interval);
+      sseClients.delete(res);
       return;
     }
+    await sendSnapshot();
+  }, 2500);
 
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.flushHeaders();
-
-    // Acknowledge connection
-    res.write("retry: 3000\n\n");
-
-    sseClients.add(res);
-
-    const sendAll = async (): Promise<void> => {
-      try {
-        const [agents, tasks, queueDepth, todayCount] = await Promise.all([
-          getAllAgents(),
-          getRecentTasks(),
-          getQueueDepth(),
-          getTodayCount(),
-        ]);
-
-        const agentsOnline = agents.filter(
-          (a) => a.status === "idle" || a.status === "busy"
-        ).length;
-
-        const health: HealthPayload = { agentsOnline, queueDepth, todayCount };
-
-        if (!res.writableEnded) {
-          res.write(`event: agents\ndata: ${JSON.stringify(agents)}\n\n`);
-          res.write(`event: tasks\ndata: ${JSON.stringify(tasks)}\n\n`);
-          res.write(`event: health\ndata: ${JSON.stringify(health)}\n\n`);
-        }
-      } catch (err) {
-        console.error("[dashboard] SSE send error:", err);
-      }
-    };
-
-    // Send immediately, then every 2.5 s
-    void sendAll();
-    const interval = setInterval(async () => {
-      if (res.writableEnded) {
-        clearInterval(interval);
-        sseClients.delete(res);
-        return;
-      }
-      await sendAll();
-    }, 2500);
-
-    req.on("close", () => {
-      clearInterval(interval);
-      sseClients.delete(res);
-    });
-
-    req.on("error", () => {
-      clearInterval(interval);
-      sseClients.delete(res);
-    });
+  req.on("close", () => {
+    clearInterval(interval);
+    sseClients.delete(res);
   });
 
-  // Legacy endpoints kept for backwards compat
-  app.get("/api/agents", async (_req: Request, res: Response) => {
+  req.on("error", () => {
+    clearInterval(interval);
+    sseClients.delete(res);
+  });
+}
+
+// ── createDashboardRouter ─────────────────────────────────────────────────────
+
+export function createDashboardRouter(): Router {
+  const router = Router();
+
+  // GET /dashboard — serve the SPA HTML
+  router.get("/dashboard", (_req: Request, res: Response) => {
+    res.sendFile(resolveDashboardHtml());
+  });
+
+  // GET /api/agents — snapshot from Redis
+  router.get("/api/agents", async (_req: Request, res: Response) => {
     try {
       const agents = await getAllAgents();
       res.json(agents);
@@ -270,7 +272,51 @@ export function startDashboardServer(): void {
     }
   });
 
+  // GET /api/tasks?limit=50 — recent tasks from PostgreSQL
+  router.get("/api/tasks", async (req: Request, res: Response) => {
+    try {
+      const raw = parseInt(String(req.query["limit"] ?? "20"), 10);
+      const limit = Number.isNaN(raw) ? 20 : raw;
+      const tasks = await getRecentTasks(limit);
+      res.json(tasks);
+    } catch (err) {
+      console.error("[dashboard] /api/tasks error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // GET /events — SSE stream
+  router.get("/events", (req: Request, res: Response) => {
+    attachSSEClient(req, res);
+  });
+
+  return router;
+}
+
+// ── startDashboardServer (legacy — called from src/index.ts) ──────────────────
+
+export function startDashboardServer(): void {
+  const app = express();
+  const publicDir = resolvePublicDir();
+
+  // Serve static assets from public/
+  app.use(express.static(publicDir));
+
+  // Mount the new router (covers /dashboard, /api/agents, /api/tasks, /events)
+  app.use("/", createDashboardRouter());
+
+  // Legacy: GET / → index.html from public/
+  app.get("/", (_req: Request, res: Response) => {
+    res.sendFile(path.join(publicDir, "index.html"));
+  });
+
+  // Legacy SSE path /api/events for existing public/dashboard.js
+  app.get("/api/events", (req: Request, res: Response) => {
+    attachSSEClient(req, res);
+  });
+
   app.listen(config.PORT, () => {
     console.log(`[dashboard] Server running on http://localhost:${config.PORT}`);
+    console.log(`[dashboard] Live dashboard at http://localhost:${config.PORT}/dashboard`);
   });
 }
