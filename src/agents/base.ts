@@ -49,7 +49,7 @@ export abstract class BaseAgent {
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 2048,
+      max_tokens: 8192,
       system: fullSystemPrompt,
       messages: [{ role: "user", content: userMessage }],
     });
@@ -67,10 +67,23 @@ export abstract class BaseAgent {
    * Otherwise wrap the raw text as { summary: text }.
    */
   protected parseOutput(text: string): AgentOutput {
-    const jsonBlockMatch = text.match(/```json\s*([\s\S]*?)```/);
-    if (jsonBlockMatch) {
+    // 1. Try fenced code block: ```json ... ```
+    // 2. Try truncated block (response cut off before closing ```): ```json ... EOF
+    // 3. Try raw JSON object anywhere in the text
+    const candidates: string[] = [];
+
+    const fencedMatch = text.match(/```json\s*([\s\S]*?)```/);
+    if (fencedMatch) candidates.push(fencedMatch[1].trim());
+
+    const truncatedMatch = text.match(/```json\s*([\s\S]+)$/);
+    if (truncatedMatch) candidates.push(truncatedMatch[1].trim());
+
+    const rawJsonMatch = text.match(/(\{[\s\S]*\})/);
+    if (rawJsonMatch) candidates.push(rawJsonMatch[1].trim());
+
+    for (const candidate of candidates) {
       try {
-        const parsed = JSON.parse(jsonBlockMatch[1].trim()) as unknown;
+        const parsed = JSON.parse(candidate) as unknown;
         if (
           typeof parsed === "object" &&
           parsed !== null &&
@@ -84,12 +97,11 @@ export abstract class BaseAgent {
           };
         }
       } catch {
-        // Fall through to plain text path
+        // Try next candidate
       }
     }
-    // Plain text fallback — extract first non-empty paragraph as the Slack summary.
-    // This prevents full file contents from being dumped into Slack when the agent
-    // forgets to use the JSON block format.
+
+    // Plain text fallback — first paragraph only, max 400 chars for Slack.
     const firstParagraph = text.split(/\n\n+/).find((p) => p.trim().length > 0) ?? text;
     const summary = firstParagraph.length > 400
       ? firstParagraph.slice(0, 400).trimEnd() + "…"
