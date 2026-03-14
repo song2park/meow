@@ -65,10 +65,18 @@
 - [ ] Google Docs integration (agents publish decisions/docs)
 
 ## Milestone 4: Agent Memory
-- [ ] Store task history per agent in PostgreSQL
-- [ ] Pass recent task history as context to each agent `think()` call
+- [x] Store task history per agent in PostgreSQL
+- [x] Pass recent task history + previous files as context to each `think()` call
 - [ ] Summarize long history to avoid token bloat
-- [ ] Memory persists across reboots (DB-backed, not Redis-only)
+- [ ] Verify memory persists correctly across reboots
+
+## Milestone 5: Workspace Git
+- [x] Separate agent file workspace from service repo
+- [x] `WORKSPACE_REPO_PATH` — configurable local workspace root
+- [x] `GIT_REPO_URL` — if set, push to remote + open PR; if not, local-only
+- [x] `initWorkspace()` — auto-init git repo on startup
+- [x] Agent files committed to `agent/<name>` branch in workspace
+- [x] Agents respond conversationally in Slack; files via `<FILES>` marker
 
 ---
 
