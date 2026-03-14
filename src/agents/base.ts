@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { redis } from "../queue";
 import { Agent, AgentOutput, AgentRole, AgentStatus } from "../types";
-import { getAgentMemory, buildMemoryContext } from "./memory";
+import { getAgentMemory, getAgentFiles, buildMemoryContext } from "./memory";
 
 const anthropic = new Anthropic();
 
@@ -36,12 +36,15 @@ export abstract class BaseAgent {
     });
   }
 
-  async think(systemPrompt: string, userMessage: string, agentId?: string): Promise<string> {
+  async think(systemPrompt: string, userMessage: string, agentId?: string, agentName?: string): Promise<string> {
     let fullSystemPrompt = systemPrompt;
 
-    if (agentId) {
-      const memory = await getAgentMemory(agentId);
-      const memCtx = buildMemoryContext(memory);
+    if (agentId || agentName) {
+      const [memory, files] = await Promise.all([
+        agentId ? getAgentMemory(agentId) : Promise.resolve([]),
+        agentName ? getAgentFiles(agentName) : Promise.resolve([]),
+      ]);
+      const memCtx = buildMemoryContext(memory, files);
       if (memCtx) {
         fullSystemPrompt = `${systemPrompt}\n\n## Your Past Work\n${memCtx}`;
       }
@@ -113,7 +116,7 @@ export abstract class BaseAgent {
     const fullPrompt = context
       ? `${instruction}\n\nContext:\n${context}`
       : instruction;
-    const text = await this.think(this.systemPrompt(), fullPrompt, this.id);
+    const text = await this.think(this.systemPrompt(), fullPrompt, this.id, this.name);
     return this.parseOutput(text);
   }
 }
