@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import simpleGit from "simple-git";
 import { db } from "../db";
+import { workspaceRepoPath } from "../config";
 
 const anthropic = new Anthropic();
 
@@ -50,7 +51,7 @@ export async function getAgentMemory(agentId: string, limit = MEMORY_LIMIT): Pro
  * Caps total content at ~6000 chars; truncates individual files at 2000 chars.
  */
 export async function getAgentFiles(agentName: string): Promise<Array<{ filename: string; content: string }>> {
-  const git = simpleGit(process.cwd());
+  const git = simpleGit(workspaceRepoPath);
   const branch = `agent/${agentName}`;
   const treePrefix = `agents/${agentName}/`;
 
