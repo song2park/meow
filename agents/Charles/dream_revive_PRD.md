@@ -1,0 +1,249 @@
+# Dream Revive — Product Requirements Document
+**Version:** 1.0 | **Owner:** Charles (PM) | **Status:** Approved for Design & Dev
+
+---
+
+## VISION STATEMENT
+
+> *"It's never too late to become who you were meant to be."*
+
+Dream Revive is not an AI tool. It is a **second chance**. A platform for adults who had to set aside their childhood dreams — due to money, family pressure, circumstance, or self-doubt — and now, with AI as their skill engine, can finally live them.
+
+The emotional core: **nostalgia + validation + creative identity**. Users don't come here to play with AI. They come here to finally be the person they always imagined.
+
+---
+
+## 1. DREAM CATEGORIES — LAUNCH LINEUP (Top 8)
+
+| # | Category | Core Dream | AI Capability |
+|---|----------|-----------|---------------|
+| 1 | **Painter / Visual Artist** | "I always wanted to paint" | Text-to-image, style evolution, canvas AI |
+| 2 | **Musician / Composer** | "I had melodies in my head" | Music generation, lyric writing, arrangement |
+| 3 | **Writer / Author** | "I had a novel inside me" | AI co-writing, story structure, publishing tools |
+| 4 | **Fashion Designer** | "I sketched clothes in my notebooks" | Outfit generation, lookbook creation, mood boards |
+| 5 | **Photographer** | "I saw beauty no one else noticed" | AI photo editing, style transfer, composition AI |
+| 6 | **Filmmaker / Director** | "I had stories to tell on screen" | Storyboard AI, short video generation, script tools |
+| 7 | **Athlete / Sports Person** | "I wanted to go pro" | Training plans, highlight reels, sports journaling |
+| 8 | **Chef / Culinary Artist** | "I dreamed of my own restaurant" | Recipe design, menu creation, food story writing |
+
+**Rationale for selection:** High emotional resonance, strong AI tool maturity, broad demographic appeal, and social shareability.
+
+**Future Phase categories:** Architect, Dancer/Choreographer, Game Designer, Actor/Performer.
+
+---
+
+## 2. USER STORIES
+
+### 🎨 Painter
+- *As someone who dreamed of being a painter,* I can describe a scene or feeling in words, and AI generates an original artwork that reflects MY creative direction — so I feel like the artist, not a prompt typist.
+- *As a visual artist on Dream Revive,* I can define my personal style (bold colors, impressionism, abstract) and the AI learns and applies it consistently across all my works.
+
+### 🎵 Musician
+- *As someone who always heard music in their head,* I can hum, describe a mood, or pick a genre and produce a real, original track I can call my own and share with the world.
+- *As a dreamer-musician,* I can write raw, unpolished lyrics and have AI help me shape them into a full song — while keeping MY words and MY voice at the center.
+
+### ✍️ Writer
+- *As someone who always wanted to write a novel,* I can share my story idea and characters, and AI helps me build chapters — but every narrative choice is mine, making the book feel authentically authored by me.
+- *As a writer on Dream Revive,* I want a published-style profile page that displays my works like a real author's portfolio, so I feel the pride of being a published writer.
+
+### 👗 Fashion Designer
+- *As someone who sketched outfits in school notebooks,* I can describe a look — fabrics, silhouettes, occasions — and AI generates professional design visuals I can present in my lookbook.
+
+### 📸 Photographer
+- *As someone with an artistic eye but no expensive equipment,* I can upload a photo or describe a scene and use AI to elevate it into gallery-worthy work that reflects my unique perspective.
+
+### 🎬 Filmmaker
+- *As an aspiring director,* I can write a scene concept and generate storyboards, mood reels, and short cinematic clips — so I can finally see my vision on screen.
+
+### 🏅 Athlete
+- *As someone who dreamed of going pro,* I can log my personal athletic journey, receive AI training plans, and create a highlight reel or sports story that celebrates my dedication.
+
+### 👨‍🍳 Chef
+- *As someone who always dreamed of opening a restaurant,* I can design my signature menu, create a restaurant concept story, and generate dish photography — and share my culinary identity with the world.
+
+---
+
+## 3. IDENTITY & OWNERSHIP FRAMEWORK
+
+**The core tension:** AI does the technical execution — but users must feel the creative ownership. This is non-negotiable for emotional resonance.
+
+### Principles:
+
+**a) User is the Director, AI is the Instrument**
+- Language across the platform never says "AI created this." It says: *"You created this, powered by your vision."*
+- All creation flows start with the user's input: their words, mood, memory, story, or style preference.
+
+**b) Style DNA System**
+- Every user builds a personal "Creative DNA" profile over time — preferred styles, recurring themes, aesthetic choices.
+- AI adapts to their evolving style, making outputs increasingly personal and uniquely theirs.
+
+**c) Creation Attribution**
+- All works are published under the user's name: *"Painted by Sarah M."* — not *"Generated by AI."*
+- Metadata credits: *"Created with Dream Revive AI"* as a subtle tool credit, like *"Shot on iPhone."*
+
+**d) The Story Layer**
+- Every creation includes an optional *"The Story Behind This"* field where users explain their creative intent.
+- This narrative turns AI output into personal art with meaning and context.
+
+**e) Legal Ownership**
+- Users own full rights to all outputs created on the platform (clearly stated in ToS).
+- Commercial usage rights included in premium tier.
+
+---
+
+## 4. SOCIAL & COMMUNITY FEATURES
+
+### Core Social Loop:
+`Create → Share → Inspire → Connect → Create More`
+
+### Features:
+
+| Feature | Description | Phase |
+|---------|-------------|-------|
+| **Dream Feed** | A curated feed of creations from people in your dream category and beyond | MVP |
+| **Follow & Inspire** | Follow other dreamers; get notified when they publish new work | MVP |
+| **Dream Reactions** | Specialized reactions: 🌟 Inspired, 💛 This moves me, 🔥 Keep going — more emotionally resonant than generic likes | MVP |
+| **Story Comments** | Comment threads focused on the *story* behind the work, not just the work itself | MVP |
+| **Dream Circles** | Small interest groups (e.g., "Painters Who Started After 40", "Weekend Musicians") | Phase 2 |
+| **Collab Mode** | Two dreamers co-create a piece together — a writer + illustrator, a musician + lyricist | Phase 2 |
+| **Monthly Showcases** | Curated community exhibitions per dream category, featured on the homepage | Phase 2 |
+| **Mentorship Matching** | Connect with someone slightly ahead in their dream journey | Phase 3 |
+| **Dream Duets** | Challenges where two strangers in different dream categories combine their work | Phase 3 |
+
+---
+
+## 5. DREAM PROFILE CONCEPT
+
+The Dream Profile is the **emotional heart** of the platform — more than a portfolio, it's a personal identity document.
+
+### Profile Components:
+
+**Header Section:**
+- Profile photo + Dream Title (e.g., *"The Painter I Always Was"*)
+- Dream Category badge with custom icon
+- Tagline — user-written or AI-suggested (e.g., *"Making the colors in my mind real since 2024"*)
+
+**Origin Story:**
+- A short, prompted narrative: *"When did you first have this dream?"* / *"What stopped you?"* / *"What brought you back?"*
+- Optional. But emotionally powerful. Displayed prominently.
+
+**Creative Journey Timeline:**
+- Chronological gallery of all their creations
+- Milestones auto-marked: *"First Creation," "10th Artwork," "First Collab," "Featured in Showcase"*
+- Visual progress arc showing style evolution over time
+
+**Dream Stats:**
+- Creations published
+- Hours of creative flow (time in app)
+- Dreams inspired in others (how many people followed or reacted to their work)
+- Current streak (consecutive days creating)
+
+**Achievement Badges:**
+- *"Dream Starter"* — First creation
+- *"Consistent Dreamer"* — 7-day streak
+- *"Style Found"* — Style DNA fully defined
+- *"Dream Mentor"* — Helped/inspired 50+ other dreamers
+- *"Renaissance Soul"* — Active in 3+ dream categories
+
+**Privacy Controls:**
+- Full public profile, friends-only, or private (personal journal mode)
+
+---
+
+## 6. MVP vs FUTURE PHASES
+
+### MVP (Months 1–4): Prove the Emotional Core
+**Goal:** Can we make ONE person feel like they've lived their dream?
+
+| Feature | Priority | Rationale |
+|---------|----------|-----------|
+| 4 Dream Categories (Painter, Musician, Writer, Photographer) | MUST | Highest AI maturity + emotional demand |
+| Dream Profile setup (origin story, category selection) | MUST | Core identity layer |
+| AI creation engine per category | MUST | Core value delivery |
+| Personal gallery / portfolio page | MUST | Ownership + pride |
+| Style DNA (basic — user sets 3-5 style preferences) | MUST | Identity differentiation |
+| Public Dream Feed | MUST | Social proof + retention |
+| Follow + Dream Reactions | MUST | Minimum social loop |
+| Story Behind This field | MUST | Emotional depth |
+| Achievement badges (5 core badges) | SHOULD | Motivation + habit formation |
+| Mobile-responsive web app | MUST | Accessibility |
+
+### Phase 2 (Months 5–8): Deepen Community
+- 4 additional dream categories (Fashion, Filmmaker, Athlete, Chef)
+- Dream Circles (community groups)
+- Collab Mode
+- Monthly Showcase events
+- Advanced Style DNA (AI learns from usage patterns)
+- Native mobile apps (iOS + Android)
+
+### Phase 3 (Months 9–14): Scale & Monetize
+- Mentorship matching
+- Dream Duets (cross-category collabs)
+- Physical prints / merchandise of user artwork (print-on-demand integration)
+- Creator monetization (sell your digital art, music, writing)
+- API for third-party dream category plugins
+- Enterprise/education licensing
+
+---
+
+## 7. EMOTIONAL HOOK — THE FEELING WE'RE SELLING
+
+**This platform is not about AI. It is about a feeling users have been waiting decades for.**
+
+### The Three Emotional Pillars:
+
+**1. VALIDATION**
+> *"Your dream was real and it was worth having."*
+- The platform acknowledges the dream before it does anything else.
+- Onboarding asks: *"Tell us about your dream."* Not: *"Pick a category."*
+- The AI never makes the user feel less-than. Every output is framed as the user's creative expression.
+
+**2. NOSTALGIA AS FUEL**
+> *"Remember why you fell in love with this."*
+- Prompt suggestions reference childhood memories: *"Paint the bedroom you had at 8 years old."* *"Write the story you made up for your little sister."*
+- Onboarding includes a *"Dream Memory"* moment — a soft, narrative question about when they first felt the pull of their dream.
+- Aesthetic of the platform: warm, tactile, analog-feeling. Not cold tech.
+
+**3. RECLAMATION**
+> *"You're not too old. You're right on time."*
+- The platform celebrates late starters. Profile milestone: *"Started their dream at 43."*
+- Community language: no beginners, no amateurs — only *dreamers* and *creators.*
+- Every achievement badge is a quiet affirmation: *"You showed up."*
+
+### Emotional Journey Arc:
+```
+[Longing] → [Permission] → [First Creation] → [Pride] → [Belonging] → [Identity]
+```
+The user moves from *"I wish I could"* to *"I am."* That transformation is the product.
+
+---
+
+## 8. SUCCESS METRICS
+
+| Metric | MVP Target | Signal |
+|--------|-----------|--------|
+| Dream Profile completion rate | >70% | Emotional buy-in |
+| First creation within 24hrs of signup | >60% | Onboarding effectiveness |
+| 7-day retention | >40% | Habit formation |
+| Creations shared publicly | >50% of total | Pride + social confidence |
+| User NPS | >65 | Emotional resonance |
+| "This feels like mine" survey score | >80% agree | Ownership framework success |
+| Return sessions per week (active users) | >3x | Dream habit forming |
+
+---
+
+## 9. OPEN QUESTIONS & DEPENDENCIES
+
+| Question | Owner | Priority |
+|----------|-------|----------|
+| Which AI providers per category? (Stability AI, Suno, OpenAI, etc.) | Tech Lead | HIGH |
+| Legal review: user ownership rights language in ToS | Legal | HIGH |
+| Do we gate the Origin Story or make it optional in MVP? | UX + PM | MEDIUM |
+| Moderation strategy for public Dream Feed | Trust & Safety | HIGH |
+| Freemium limits — how many creations free per month? | PM + Finance | HIGH |
+| Will we support non-English dreamers at launch? | PM | MEDIUM |
+
+---
+
+*Document owner: Charles, Product Manager*
+*Next step: Hand off to UX for onboarding flow wireframes and to Tech Lead for AI stack selection.*
