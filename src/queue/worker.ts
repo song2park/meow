@@ -127,8 +127,8 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
       console.error(`[worker] Memory save failed for task ${taskId}:`, (memErr as Error).message);
     }
 
-    // Handle file artifacts: only when GIT_REPO_URL is configured
-    if (output.files && output.files.length > 0 && config.GIT_REPO_URL) {
+    // Handle file artifacts — always write + commit locally; push/PR only if GIT_REPO_URL is set
+    if (output.files && output.files.length > 0) {
       const branchName = `agent/${agent.name}`;
       const writtenFiles: string[] = [];
 
@@ -144,9 +144,9 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
         const commitMessage = `[${agent.name}] ${shortDescription}`;
         await commitAndPush(git, agent.name, agent.role, commitMessage);
 
-        // Attempt PR creation if GITHUB_TOKEN is configured
+        // Attempt PR creation only if remote repo is configured
         let prUrl: string | null = null;
-        if (config.GITHUB_TOKEN) {
+        if (config.GIT_REPO_URL && config.GITHUB_TOKEN) {
           try {
             prUrl = await createAgentPR({
               agentName: agent.name,
@@ -157,8 +157,6 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
           } catch (prErr) {
             console.error(`[worker] PR creation failed for ${agent.name}:`, (prErr as Error).message);
           }
-        } else {
-          console.warn(`[worker] GITHUB_TOKEN not set — skipping PR creation for ${agent.name}`);
         }
 
         const fileList = output.files.map((f) => `• ${f.filename}`).join("\n");
@@ -179,7 +177,7 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
         );
       }
     } else {
-      // No git configured, or no file artifacts — post summary only
+      // No file artifacts — post summary only
       await postToSlack(
         slackChannel,
         `:white_check_mark: *${agent.name}* finished: ${sanitizeForSlack(output.summary)}`,

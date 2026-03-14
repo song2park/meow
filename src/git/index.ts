@@ -84,8 +84,10 @@ export async function commitAndPush(
     const commitResult = await git.commit(message);
     const sha = commitResult.commit;
 
-    // Push and set upstream on first push
-    await git.push(["--set-upstream", "origin", branchName]);
+    // Push only if a remote repo is configured
+    if (config.GIT_REPO_URL) {
+      await git.push(["--set-upstream", "origin", branchName]);
+    }
 
     return sha;
   } finally {
