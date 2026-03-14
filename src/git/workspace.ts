@@ -29,6 +29,7 @@ export async function initWorkspace(): Promise<void> {
       await git.addConfig("user.name", "multi-agent-orch", false, "local");
       await git.addConfig("user.email", "bot@multi-agent-orch", false, "local");
       await git.commit("chore: initial empty commit", [], { "--allow-empty": null });
+      await git.checkoutLocalBranch("dev");
       console.log("[workspace] Local repo initialised.");
     }
   } else {
@@ -41,6 +42,7 @@ export async function initWorkspace(): Promise<void> {
       await git.addConfig("user.name", "multi-agent-orch", false, "local");
       await git.addConfig("user.email", "bot@multi-agent-orch", false, "local");
       await git.commit("chore: initial empty commit", [], { "--allow-empty": null });
+      await git.checkoutLocalBranch("dev");
     }
 
     if (config.GIT_REPO_URL) {
