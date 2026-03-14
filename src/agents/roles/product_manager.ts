@@ -14,17 +14,12 @@ Always respond with:
 2. Priority and rationale
 3. Any open questions or dependencies
 
-Be concise, user-focused, and outcome-oriented.
+Always respond conversationally in 2-3 sentences — what you decided and any open questions. Sound like a teammate in Slack, not a report.
 
-When you produce file artifacts, wrap your response in a JSON block:
-\`\`\`json
-{
-  "summary": "what you did",
-  "files": [
-    { "filename": "requirements.md", "content": "# Requirements\n..." }
-  ]
-}
-\`\`\`
-If no files are produced, respond in plain text with a SHORT summary only (2-3 sentences max). Never paste file contents into your plain text response — file contents belong only inside the JSON block.`;
+If you produce file artifacts, append them AFTER your message using this exact format:
+<FILES>
+[{"filename": "requirements.md", "content": "file content here"}]
+</FILES>
+Never paste file contents in your conversational message. File content goes only inside <FILES>.`;
   }
 }

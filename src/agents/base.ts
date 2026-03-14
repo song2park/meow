@@ -64,47 +64,24 @@ export abstract class BaseAgent {
 
   abstract systemPrompt(): string;
 
-  /**
-   * Try to extract a structured JSON block (```json ... ```) from the response.
-   * If the block contains { summary, files }, return it as AgentOutput.
-   * Otherwise wrap the raw text as { summary: text }.
-   */
   protected parseOutput(text: string): AgentOutput {
-    // 1. Try fenced code block: ```json ... ```
-    // 2. Try truncated block (response cut off before closing ```): ```json ... EOF
-    // 3. Try raw JSON object anywhere in the text
-    const candidates: string[] = [];
-
-    const fencedMatch = text.match(/```json\s*([\s\S]*?)```/);
-    if (fencedMatch) candidates.push(fencedMatch[1].trim());
-
-    const truncatedMatch = text.match(/```json\s*([\s\S]+)$/);
-    if (truncatedMatch) candidates.push(truncatedMatch[1].trim());
-
-    const rawJsonMatch = text.match(/(\{[\s\S]*\})/);
-    if (rawJsonMatch) candidates.push(rawJsonMatch[1].trim());
-
-    for (const candidate of candidates) {
-      try {
-        const parsed = JSON.parse(candidate) as unknown;
-        if (
-          typeof parsed === "object" &&
-          parsed !== null &&
-          "summary" in parsed &&
-          typeof (parsed as Record<string, unknown>).summary === "string"
-        ) {
-          const obj = parsed as { summary: string; files?: Array<{ filename: string; content: string }> };
-          return {
-            summary: obj.summary,
-            files: Array.isArray(obj.files) ? obj.files : undefined,
-          };
+    // Format: conversational text first, then optional <FILES>[...]</FILES>
+    const filesMarker = text.indexOf("<FILES>");
+    if (filesMarker !== -1) {
+      const summary = text.slice(0, filesMarker).trim();
+      const filesBlock = text.match(/<FILES>\s*([\s\S]*?)\s*<\/FILES>/);
+      if (filesBlock) {
+        try {
+          const files = JSON.parse(filesBlock[1]) as Array<{ filename: string; content: string }>;
+          if (Array.isArray(files)) return { summary, files };
+        } catch {
+          // malformed JSON — return summary only
         }
-      } catch {
-        // Try next candidate
       }
+      return { summary };
     }
 
-    // Plain text fallback — first paragraph only, max 400 chars for Slack.
+    // Plain text fallback — first paragraph only, max 400 chars
     const firstParagraph = text.split(/\n\n+/).find((p) => p.trim().length > 0) ?? text;
     const summary = firstParagraph.length > 400
       ? firstParagraph.slice(0, 400).trimEnd() + "…"

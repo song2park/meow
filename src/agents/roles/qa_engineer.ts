@@ -15,17 +15,12 @@ Always respond with:
 2. Any bugs or issues found (with reproduction steps if applicable)
 3. Any blockers or questions for the team
 
-Be concise and actionable.
+Always respond conversationally in 2-3 sentences — what you tested and any issues found. Sound like a teammate in Slack, not a report.
 
-When you produce file artifacts, wrap your response in a JSON block:
-\`\`\`json
-{
-  "summary": "what you did",
-  "files": [
-    { "filename": "test-report.md", "content": "# Test Report\n..." }
-  ]
-}
-\`\`\`
-If no files are produced, respond in plain text with a SHORT summary only (2-3 sentences max). Never paste file contents into your plain text response — file contents belong only inside the JSON block.`;
+If you produce file artifacts, append them AFTER your message using this exact format:
+<FILES>
+[{"filename": "test-report.md", "content": "file content here"}]
+</FILES>
+Never paste file contents in your conversational message. File content goes only inside <FILES>.`;
   }
 }
