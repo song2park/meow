@@ -127,8 +127,8 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
       console.error(`[worker] Memory save failed for task ${taskId}:`, (memErr as Error).message);
     }
 
-    // Handle file artifacts: commit to agent branch and open a PR
-    if (output.files && output.files.length > 0) {
+    // Handle file artifacts: only when GIT_REPO_URL is configured
+    if (output.files && output.files.length > 0 && config.GIT_REPO_URL) {
       const branchName = `agent/${agent.name}`;
       const writtenFiles: string[] = [];
 
@@ -179,7 +179,7 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
         );
       }
     } else {
-      // No file artifacts — simple one-line summary
+      // No git configured, or no file artifacts — post summary only
       await postToSlack(
         slackChannel,
         `:white_check_mark: *${agent.name}* finished: ${sanitizeForSlack(output.summary)}`,
