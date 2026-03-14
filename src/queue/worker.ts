@@ -11,6 +11,15 @@ import { ensureAgentBranch, writeAgentFile, commitAndPush, createAgentPR } from 
 import { emitAgentUpdate, ROLE_COLORS } from "../dashboard";
 import { saveTaskMemory } from "../agents/memory";
 
+/** Strip JSON blocks, code fences, and markdown headers — keep plain conversational text only. */
+function sanitizeForSlack(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, "")   // remove code/json blocks
+    .replace(/^#+\s.*$/gm, "")         // remove markdown headers
+    .replace(/\n{3,}/g, "\n\n")        // collapse excess newlines
+    .trim();
+}
+
 async function getAgentByRole(role: AgentRole): Promise<(Agent & { id: string }) | null> {
   const result = await db.query<Agent & { id: string }>(
     "SELECT id, name, role, branch FROM agents WHERE role = $1 LIMIT 1",
@@ -154,9 +163,10 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
 
         const fileList = output.files.map((f) => `• ${f.filename}`).join("\n");
         const prNote = prUrl ? `\n:link: PR: ${prUrl}` : "";
+        const summary = sanitizeForSlack(output.summary);
         await postToSlack(
           slackChannel,
-          `:white_check_mark: *${agent.name}* finished: ${output.summary}\n:file_folder: Files:\n${fileList}${prNote}`,
+          `:white_check_mark: *${agent.name}* finished: ${summary}\n:file_folder: Files:\n${fileList}${prNote}`,
           slackThreadTs
         );
       } catch (gitErr) {
@@ -172,7 +182,7 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
       // No file artifacts — simple one-line summary
       await postToSlack(
         slackChannel,
-        `:white_check_mark: *${agent.name}* finished: ${output.summary}`,
+        `:white_check_mark: *${agent.name}* finished: ${sanitizeForSlack(output.summary)}`,
         slackThreadTs
       );
     }
