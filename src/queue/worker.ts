@@ -111,12 +111,6 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
     // All other agents — run task and post result to Slack
     const output = await agent.run(instruction, context);
 
-    await postToSlack(
-      slackChannel,
-      `:white_check_mark: *${agent.name}* finished:\n${output.summary}`,
-      slackThreadTs
-    );
-
     // Persist task memory (non-fatal — failure must not fail the task)
     try {
       await saveTaskMemory(taskId, output.summary);
@@ -158,10 +152,11 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
           console.warn(`[worker] GITHUB_TOKEN not set — skipping PR creation for ${agent.name}`);
         }
 
-        const prNote = prUrl ? ` — PR: ${prUrl}` : "";
+        const fileList = output.files.map((f) => `• ${f.filename}`).join("\n");
+        const prNote = prUrl ? `\n:link: PR: ${prUrl}` : "";
         await postToSlack(
           slackChannel,
-          `:file_folder: *${agent.name}* committed ${writtenFiles.length} file(s)${prNote}`,
+          `:white_check_mark: *${agent.name}* finished: ${output.summary}\n:file_folder: Files:\n${fileList}${prNote}`,
           slackThreadTs
         );
       } catch (gitErr) {
@@ -173,6 +168,13 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
           slackThreadTs
         );
       }
+    } else {
+      // No file artifacts — simple one-line summary
+      await postToSlack(
+        slackChannel,
+        `:white_check_mark: *${agent.name}* finished: ${output.summary}`,
+        slackThreadTs
+      );
     }
 
     await agent.setStatus("idle");
