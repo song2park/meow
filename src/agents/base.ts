@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { redis } from "../queue";
 import { Agent, AgentOutput, AgentRole, AgentStatus } from "../types";
+import { getAgentMemory, buildMemoryContext } from "./memory";
 
 const anthropic = new Anthropic();
 
@@ -35,11 +36,21 @@ export abstract class BaseAgent {
     });
   }
 
-  async think(systemPrompt: string, userMessage: string): Promise<string> {
+  async think(systemPrompt: string, userMessage: string, agentId?: string): Promise<string> {
+    let fullSystemPrompt = systemPrompt;
+
+    if (agentId) {
+      const memory = await getAgentMemory(agentId);
+      const memCtx = buildMemoryContext(memory);
+      if (memCtx) {
+        fullSystemPrompt = `${systemPrompt}\n\n## Your Past Work\n${memCtx}`;
+      }
+    }
+
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 2048,
-      system: systemPrompt,
+      system: fullSystemPrompt,
       messages: [{ role: "user", content: userMessage }],
     });
 
@@ -83,7 +94,7 @@ export abstract class BaseAgent {
     const fullPrompt = context
       ? `${instruction}\n\nContext:\n${context}`
       : instruction;
-    const text = await this.think(this.systemPrompt(), fullPrompt);
+    const text = await this.think(this.systemPrompt(), fullPrompt, this.id);
     return this.parseOutput(text);
   }
 }

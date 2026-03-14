@@ -9,6 +9,7 @@ import { v4 as uuid } from "uuid";
 import { config } from "../config";
 import { ensureAgentBranch, writeAgentFile, commitAndPush, createAgentPR } from "../git";
 import { emitAgentUpdate, ROLE_COLORS } from "../dashboard";
+import { saveTaskMemory } from "../agents/memory";
 
 async function getAgentByRole(role: AgentRole): Promise<(Agent & { id: string }) | null> {
   const result = await db.query<Agent & { id: string }>(
@@ -115,6 +116,13 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
       `:white_check_mark: *${agent.name}* finished:\n${output.summary}`,
       slackThreadTs
     );
+
+    // Persist task memory (non-fatal — failure must not fail the task)
+    try {
+      await saveTaskMemory(taskId, output.summary);
+    } catch (memErr) {
+      console.error(`[worker] Memory save failed for task ${taskId}:`, (memErr as Error).message);
+    }
 
     // Handle file artifacts: commit to agent branch and open a PR
     if (output.files && output.files.length > 0) {

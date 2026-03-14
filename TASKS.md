@@ -64,6 +64,12 @@
 - [ ] Task history and logs
 - [ ] Google Docs integration (agents publish decisions/docs)
 
+## Milestone 4: Agent Memory
+- [ ] Store task history per agent in PostgreSQL
+- [ ] Pass recent task history as context to each agent `think()` call
+- [ ] Summarize long history to avoid token bloat
+- [ ] Memory persists across reboots (DB-backed, not Redis-only)
+
 ---
 
 ## Architecture Decisions
