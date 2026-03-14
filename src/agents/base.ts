@@ -87,7 +87,14 @@ export abstract class BaseAgent {
         // Fall through to plain text path
       }
     }
-    return { summary: text };
+    // Plain text fallback — extract first non-empty paragraph as the Slack summary.
+    // This prevents full file contents from being dumped into Slack when the agent
+    // forgets to use the JSON block format.
+    const firstParagraph = text.split(/\n\n+/).find((p) => p.trim().length > 0) ?? text;
+    const summary = firstParagraph.length > 400
+      ? firstParagraph.slice(0, 400).trimEnd() + "…"
+      : firstParagraph;
+    return { summary };
   }
 
   async run(instruction: string, context?: string): Promise<AgentOutput> {
