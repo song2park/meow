@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { redis } from "../queue";
 import { Agent, AgentOutput, AgentRole, AgentStatus } from "../types";
+import { getAgentMemory, getAgentFiles, buildMemoryContext } from "./memory";
 
 const anthropic = new Anthropic();
 
@@ -35,11 +36,24 @@ export abstract class BaseAgent {
     });
   }
 
-  async think(systemPrompt: string, userMessage: string): Promise<string> {
+  async think(systemPrompt: string, userMessage: string, agentId?: string, agentName?: string): Promise<string> {
+    let fullSystemPrompt = systemPrompt;
+
+    if (agentId || agentName) {
+      const [memory, files] = await Promise.all([
+        agentId ? getAgentMemory(agentId) : Promise.resolve([]),
+        agentName ? getAgentFiles(agentName) : Promise.resolve([]),
+      ]);
+      const memCtx = buildMemoryContext(memory, files);
+      if (memCtx) {
+        fullSystemPrompt = `${systemPrompt}\n\n## Your Past Work\n${memCtx}`;
+      }
+    }
+
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 2048,
-      system: systemPrompt,
+      max_tokens: 8192,
+      system: fullSystemPrompt,
       messages: [{ role: "user", content: userMessage }],
     });
 
@@ -50,40 +64,36 @@ export abstract class BaseAgent {
 
   abstract systemPrompt(): string;
 
-  /**
-   * Try to extract a structured JSON block (```json ... ```) from the response.
-   * If the block contains { summary, files }, return it as AgentOutput.
-   * Otherwise wrap the raw text as { summary: text }.
-   */
   protected parseOutput(text: string): AgentOutput {
-    const jsonBlockMatch = text.match(/```json\s*([\s\S]*?)```/);
-    if (jsonBlockMatch) {
-      try {
-        const parsed = JSON.parse(jsonBlockMatch[1].trim()) as unknown;
-        if (
-          typeof parsed === "object" &&
-          parsed !== null &&
-          "summary" in parsed &&
-          typeof (parsed as Record<string, unknown>).summary === "string"
-        ) {
-          const obj = parsed as { summary: string; files?: Array<{ filename: string; content: string }> };
-          return {
-            summary: obj.summary,
-            files: Array.isArray(obj.files) ? obj.files : undefined,
-          };
+    // Format: conversational text first, then optional <FILES>[...]</FILES>
+    const filesMarker = text.indexOf("<FILES>");
+    if (filesMarker !== -1) {
+      const summary = text.slice(0, filesMarker).trim();
+      const filesBlock = text.match(/<FILES>\s*([\s\S]*?)\s*<\/FILES>/);
+      if (filesBlock) {
+        try {
+          const files = JSON.parse(filesBlock[1]) as Array<{ filename: string; content: string }>;
+          if (Array.isArray(files)) return { summary, files };
+        } catch {
+          // malformed JSON — return summary only
         }
-      } catch {
-        // Fall through to plain text path
       }
+      return { summary };
     }
-    return { summary: text };
+
+    // Plain text fallback — first paragraph only, max 400 chars
+    const firstParagraph = text.split(/\n\n+/).find((p) => p.trim().length > 0) ?? text;
+    const summary = firstParagraph.length > 400
+      ? firstParagraph.slice(0, 400).trimEnd() + "…"
+      : firstParagraph;
+    return { summary };
   }
 
   async run(instruction: string, context?: string): Promise<AgentOutput> {
     const fullPrompt = context
       ? `${instruction}\n\nContext:\n${context}`
       : instruction;
-    const text = await this.think(this.systemPrompt(), fullPrompt);
+    const text = await this.think(this.systemPrompt(), fullPrompt, this.id, this.name);
     return this.parseOutput(text);
   }
 }

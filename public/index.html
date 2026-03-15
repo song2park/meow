@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Agent Orchestrator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────── -->
+  <header>
+    <div class="header-left">
+      <span class="sse-dot" id="sse-dot"></span>
+      <span class="sse-label" id="sse-label">· CONNECTING</span>
+      <span class="system-name">Multi-Agent Orchestrator</span>
+    </div>
+    <div class="health-bar">
+      <div class="health-stat">
+        <span class="health-value" id="health-online">—</span>
+        <span class="health-label">Agents Online</span>
+      </div>
+      <div class="health-divider"></div>
+      <div class="health-stat">
+        <span class="health-value" id="health-queue">—</span>
+        <span class="health-label">Queue</span>
+      </div>
+      <div class="health-divider"></div>
+      <div class="health-stat">
+        <span class="health-value" id="health-today">—</span>
+        <span class="health-label">Today's Tasks</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main ───────────────────────────────────────────────────── -->
+  <div class="main-layout">
+
+    <!-- Agent grid (65%) -->
+    <section class="agent-section">
+      <div id="agent-grid">
+        <div class="empty-state">Loading agents…</div>
+      </div>
+    </section>
+
+    <!-- Task feed sidebar (35%) -->
+    <aside class="feed-panel">
+      <div class="feed-header">Task Feed</div>
+      <div id="task-feed">
+        <div class="feed-empty">Waiting for events…</div>
+      </div>
+    </aside>
+
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

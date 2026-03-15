@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import * as path from "path";
 import { z } from "zod";
 
 dotenv.config();
@@ -20,6 +21,11 @@ const envSchema = z.object({
   GITHUB_TOKEN: z.string().optional(),
   REPO_OWNER: z.string().default("song2park"),
   REPO_NAME: z.string().default("meow"),
+  GIT_REPO_URL: z.string().url().optional(),
+  WORKSPACE_REPO_PATH: z.string().optional(),
 });
 
 export const config = envSchema.parse(process.env);
+
+export const workspaceRepoPath: string =
+  config.WORKSPACE_REPO_PATH ?? path.resolve(process.cwd(), "../agent-workspace");

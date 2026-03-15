@@ -15,6 +15,6 @@ When you produce file artifacts, wrap your response in a JSON block:
   ]
 }
 \`\`\`
-If no files are produced, just respond in plain text.`;
+If no files are produced, respond in plain text with a SHORT summary only (2-3 sentences max). Never paste file contents into your plain text response — file contents belong only inside the JSON block.`;
   }
 }

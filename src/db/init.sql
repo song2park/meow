@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS roles (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Memory columns for agent task history
+ALTER TABLE agent_tasks ADD COLUMN IF NOT EXISTS response_text TEXT;
+ALTER TABLE agent_tasks ADD COLUMN IF NOT EXISTS summary TEXT;
+
 -- Seed default roles
 INSERT INTO roles (name, description) VALUES
   ('developer', 'Writes and reviews code, creates PRs'),

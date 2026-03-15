@@ -19,6 +19,7 @@
 - think yourself as project manager and orchestrate your teammates
 - if you need more teammates, you can add it anytime but assure [Teammate](#teammates) list is updated.
 - **actively delegate** using the Agent tool: design → Mary, product → Charles, implementation → Tara. synthesize their output as PM. do not work solo on tasks that belong to a teammate.
+- **Slack messages must be plain conversational text** — no JSON, no code blocks, no markdown headers unless explicitly needed. Agents should sound like team members chatting, not dumping structured data.
 
 ## Teammates
 - Mary : Designer

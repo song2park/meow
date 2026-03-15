@@ -9,6 +9,16 @@ import { v4 as uuid } from "uuid";
 import { config } from "../config";
 import { ensureAgentBranch, writeAgentFile, commitAndPush, createAgentPR } from "../git";
 import { emitAgentUpdate, ROLE_COLORS } from "../dashboard";
+import { saveTaskMemory } from "../agents/memory";
+
+/** Strip JSON blocks, code fences, and markdown headers — keep plain conversational text only. */
+function sanitizeForSlack(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, "")   // remove code/json blocks
+    .replace(/^#+\s.*$/gm, "")         // remove markdown headers
+    .replace(/\n{3,}/g, "\n\n")        // collapse excess newlines
+    .trim();
+}
 
 async function getAgentByRole(role: AgentRole): Promise<(Agent & { id: string }) | null> {
   const result = await db.query<Agent & { id: string }>(
@@ -110,13 +120,14 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
     // All other agents — run task and post result to Slack
     const output = await agent.run(instruction, context);
 
-    await postToSlack(
-      slackChannel,
-      `:white_check_mark: *${agent.name}* finished:\n${output.summary}`,
-      slackThreadTs
-    );
+    // Persist task memory (non-fatal — failure must not fail the task)
+    try {
+      await saveTaskMemory(taskId, output.summary);
+    } catch (memErr) {
+      console.error(`[worker] Memory save failed for task ${taskId}:`, (memErr as Error).message);
+    }
 
-    // Handle file artifacts: commit to agent branch and open a PR
+    // Handle file artifacts — always write + commit locally; push/PR only if GIT_REPO_URL is set
     if (output.files && output.files.length > 0) {
       const branchName = `agent/${agent.name}`;
       const writtenFiles: string[] = [];
@@ -133,9 +144,9 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
         const commitMessage = `[${agent.name}] ${shortDescription}`;
         await commitAndPush(git, agent.name, agent.role, commitMessage);
 
-        // Attempt PR creation if GITHUB_TOKEN is configured
+        // Attempt PR creation only if remote repo is configured
         let prUrl: string | null = null;
-        if (config.GITHUB_TOKEN) {
+        if (config.GIT_REPO_URL && config.GITHUB_TOKEN) {
           try {
             prUrl = await createAgentPR({
               agentName: agent.name,
@@ -146,14 +157,14 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
           } catch (prErr) {
             console.error(`[worker] PR creation failed for ${agent.name}:`, (prErr as Error).message);
           }
-        } else {
-          console.warn(`[worker] GITHUB_TOKEN not set — skipping PR creation for ${agent.name}`);
         }
 
-        const prNote = prUrl ? ` — PR: ${prUrl}` : "";
+        const fileList = output.files.map((f) => `• ${f.filename}`).join("\n");
+        const prNote = prUrl ? `\n:link: PR: ${prUrl}` : "";
+        const summary = sanitizeForSlack(output.summary);
         await postToSlack(
           slackChannel,
-          `:file_folder: *${agent.name}* committed ${writtenFiles.length} file(s)${prNote}`,
+          `:white_check_mark: *${agent.name}* finished: ${summary}\n:file_folder: Files:\n${fileList}${prNote}`,
           slackThreadTs
         );
       } catch (gitErr) {
@@ -165,6 +176,13 @@ async function processJob(job: Job<JobPayload>): Promise<void> {
           slackThreadTs
         );
       }
+    } else {
+      // No file artifacts — post summary only
+      await postToSlack(
+        slackChannel,
+        `:white_check_mark: *${agent.name}* finished: ${sanitizeForSlack(output.summary)}`,
+        slackThreadTs
+      );
     }
 
     await agent.setStatus("idle");
