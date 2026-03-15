@@ -62,6 +62,7 @@ export function emitAgentUpdate(event: AgentUpdateEvent): void {
     try {
       client.write(payload);
     } catch {
+      // Dead socket — remove it
       sseClients.delete(client);
     }
   }
