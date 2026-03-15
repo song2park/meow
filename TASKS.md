@@ -60,8 +60,10 @@
 - [x] Assign multiple agents to same role (supported by default)
 
 ## Milestone 3: Live Dashboard (post-v1)
-- [ ] Web dashboard showing real-time agent status
-- [ ] Task history and logs
+- [x] Web dashboard showing real-time agent status (SSE-powered)
+- [x] Task history and logs (activity feed)
+- [x] Mary's design applied (dark theme, teal accent, pulse animation, Inter font)
+- [x] Clare's QA fixes (duplicate CSS property, dead JS loop removed)
 - [ ] Google Docs integration (agents publish decisions/docs)
 
 ## Milestone 4: Agent Memory

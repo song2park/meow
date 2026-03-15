@@ -18,10 +18,10 @@
       --bg:        #1a1a2e;
       --surface:   #16213e;
       --accent:    #0f3460;
-      --green:     #00b894;
+      --teal:      #00d4aa;
       --amber:     #fdcb6e;
-      --text:      #e0e0e0;
-      --muted:     #888;
+      --text:      #e8e8f0;
+      --muted:     #6b6b8a;
       --border:    rgba(255,255,255,0.07);
     }
 
@@ -32,7 +32,7 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       font-size: 13px;
       display: flex;
       flex-direction: column;
@@ -80,7 +80,7 @@
     }
 
     .sse-dot.connected {
-      background: var(--green);
+      background: var(--teal);
       animation: pulse-green 2s ease-in-out infinite;
     }
 
@@ -89,8 +89,8 @@
     }
 
     @keyframes pulse-green {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,184,148,0.5); }
-      50%       { opacity: 0.85; box-shadow: 0 0 0 5px rgba(0,184,148,0); }
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,212,170,0.5); }
+      50%       { opacity: 0.85; box-shadow: 0 0 0 5px rgba(0,212,170,0); }
     }
 
     .sse-label {
@@ -132,11 +132,13 @@
     .agent-card {
       background: var(--surface);
       border: 1px solid var(--border);
+      border-left: 3px solid #3a3a5c;
       border-radius: 10px;
       padding: 16px;
       cursor: pointer;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s;
       user-select: none;
+      opacity: 0.85;
     }
 
     .agent-card:hover {
@@ -145,8 +147,14 @@
     }
 
     .agent-card.busy {
-      border-color: rgba(253,203,110,0.3);
-      box-shadow: 0 0 0 1px rgba(253,203,110,0.12);
+      border-left-color: #00d4aa;
+      opacity: 1;
+      animation: pulse-border 2.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-border {
+      0%, 100% { box-shadow: -2px 0 12px rgba(0, 212, 170, 0.15); }
+      50%       { box-shadow: -2px 0 18px rgba(0, 212, 170, 0.35); }
     }
 
     /* Card top row: name + role + badge */
@@ -185,10 +193,12 @@
     }
 
     .card-role {
-      font-size: 11px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       color: var(--muted);
       margin-top: 2px;
-      text-transform: capitalize;
     }
 
     /* Status badge */
@@ -196,9 +206,9 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 3px 9px;
-      border-radius: 99px;
-      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.65rem;
       font-weight: 600;
       letter-spacing: 0.06em;
       flex-shrink: 0;
@@ -214,21 +224,21 @@
     }
 
     .status-badge.idle {
-      background: rgba(0,184,148,0.12);
-      color: var(--green);
+      background: #2a2a4a;
+      color: #6b6b8a;
     }
 
     .status-badge.idle::before {
-      background: var(--green);
+      background: #6b6b8a;
     }
 
     .status-badge.busy {
-      background: rgba(253,203,110,0.12);
-      color: var(--amber);
+      background: #003d30;
+      color: #00d4aa;
     }
 
     .status-badge.busy::before {
-      background: var(--amber);
+      background: #00d4aa;
       animation: pulse-dot 1.6s ease-in-out infinite;
     }
 
@@ -237,7 +247,7 @@
       50%       { opacity: 0.3; }
     }
 
-    /* Current task */
+    /* Current task — only rendered when agent is busy */
     .card-task {
       font-size: 12px;
       color: var(--muted);
@@ -245,7 +255,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
       margin-bottom: 10px;
-      min-height: 16px;
     }
 
     .card-task.active {
@@ -263,7 +272,6 @@
       background: none;
       cursor: pointer;
       padding: 2px 0;
-      color: var(--muted);
     }
 
     .card-expand:hover {
@@ -312,7 +320,7 @@
       flex-shrink: 0;
     }
 
-    .history-dot.completed { background: var(--green); }
+    .history-dot.completed { background: var(--teal); }
     .history-dot.failed    { background: #e17055; }
     .history-dot.in_progress { background: var(--amber); }
     .history-dot.pending   { background: var(--muted); }
@@ -380,7 +388,7 @@
     /* Feed item */
     .feed-item {
       padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
+      border-top: 1px solid #1e2d50;
       animation: slide-in 0.25s ease-out;
     }
 
@@ -422,13 +430,13 @@
     }
 
     .feed-status-badge.busy {
-      background: rgba(253,203,110,0.12);
-      color: var(--amber);
+      background: #003d30;
+      color: #00d4aa;
     }
 
     .feed-status-badge.idle {
-      background: rgba(0,184,148,0.12);
-      color: var(--green);
+      background: #2a2a4a;
+      color: #6b6b8a;
     }
 
     .feed-message {
@@ -550,11 +558,15 @@
 
     function buildCardHTML(agent) {
       const statusClass = (agent.status === 'busy') ? 'busy' : 'idle';
-      const taskText    = agent.currentTask || 'Waiting for task…';
-      const taskClass   = agent.currentTask ? 'card-task active' : 'card-task';
+      const isBusy      = agent.status === 'busy';
       const color       = roleColor(agent.role);
       const roleLabel   = String(agent.role || '').replace(/_/g, ' ');
       const tasks       = agentTasksMap[agent.id] || [];
+
+      // Only render the task line when the agent is busy
+      const taskHTML = isBusy && agent.currentTask
+        ? `<div class="card-task active" title="${esc(agent.currentTask)}">${esc(agent.currentTask)}</div>`
+        : '';
 
       const historyRows = tasks.length
         ? tasks.map(t => `
@@ -575,7 +587,7 @@
           </div>
           <span class="status-badge ${esc(statusClass)}">${esc(statusClass)}</span>
         </div>
-        <div class="${esc(taskClass)}" title="${esc(taskText)}">${esc(taskText)}</div>
+        ${taskHTML}
         <button class="card-expand" onclick="toggleHistory(this)" type="button">
           <span>Task history</span>
           <span class="arrow">▼</span>
@@ -698,13 +710,6 @@
         if (tasksRes.ok) {
           const tasks = await tasksRes.json();
           // Group last 3 completed tasks per agent
-          const seen = {};
-          for (const t of tasks) {
-            const aid = t.agentId || t.id; // fallback; we'll match by agentName below
-            // We don't have agentId in the task row from the API — match by agentName
-            // Build a reverse lookup from name → id
-          }
-
           // Build name→id map from agentsMap
           const nameToId = {};
           for (const [id, a] of Object.entries(agentsMap)) {
